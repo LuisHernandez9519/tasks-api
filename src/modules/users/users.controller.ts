@@ -1,7 +1,10 @@
 import { Controller, Delete, Get, HttpException, HttpStatus, Patch, Post } from '@nestjs/common';
-import { Body, Param } from '@nestjs/common/decorators';
+import { plainToInstance } from 'class-transformer'
+import { Body, Param, Query } from '@nestjs/common/decorators';
 import { ParseIntPipe } from '@nestjs/common/pipes';
-import { UserCreateDto } from './dtos';
+import { QueryParamDto, ResponsePaginationDto, ResponseSingleDto } from 'src/common/dtos';
+import { UserCreateDto, UserUpdateDto } from './dtos';
+import { User } from './user.entity';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -12,30 +15,107 @@ export class UsersController {
     ){}
 
     @Get(':id')
-    getUser(@Param('id', ParseIntPipe) id: number) {
-        console.log({id})
+    async getUser(@Param('id', ParseIntPipe) id: number) {
         try {
-            return this.userService.getUser(id)
+            const user = await this.userService.getUser(id)
+
+            let responseObject = {
+                success: true,
+                message: 'user found',
+                payload: user,
+            }
+
+            const responseSingleDto  = plainToInstance(ResponseSingleDto<User>, responseObject)
+
+            return  responseSingleDto 
+
         } catch (error) {
-            throw new HttpException('Ups, ocurrió un problemas en el servidor',HttpStatus.INTERNAL_SERVER_ERROR)
+            throw error
         }
     }
 
     @Get()
-    getUsers(){}
-
-    @Post()
-    createUser(@Body() useDto: UserCreateDto){
+    async getUsers(@Query() data: QueryParamDto){
         try {
-            return this.userService.createUser(useDto)
+            const result = await this.userService.getUsers(data)
+
+            let responseObject = {
+                success: true,
+                message: 'list users',
+                payload: {
+                    data: result.users,
+                    page: data.page,
+                    limit: data.limit,
+                    totalCount: result.totalCount
+                }
+            }
+
+            const responsePaginationDto = plainToInstance(ResponsePaginationDto<User>, responseObject)
+
+            return responsePaginationDto  
+
         } catch (error) {
-            throw new HttpException('Ups, ocurrió un problemas en el servidor',HttpStatus.INTERNAL_SERVER_ERROR)
+            throw error
         }
     }
 
-    @Patch()
-    updateUser(){}
+    @Post()
+    async createUser(@Body() dataCreate: UserCreateDto){
+        try {
+            const newUser = await this.userService.createUser(dataCreate)
 
-    @Delete()
-    deleteUser(){}
+            const responseObject = {
+                success: true,
+                message: 'user created',
+                payload: newUser
+            }
+
+            const responsePaginationDto = plainToInstance(ResponseSingleDto<User>, responseObject)
+
+            return responsePaginationDto
+
+        } catch (error) {
+            throw error
+        }
+    }
+
+    @Patch(':id')
+    async updateUser(@Body() dataUpdate: UserUpdateDto, @Param('id') id: number){
+        try{
+            const userUpdate = await this.userService.updateUser(dataUpdate, id)
+
+            const responseObject = {
+                success: true,
+                message: 'user updated',
+                payload: userUpdate
+            }
+
+            const responseSingleDto = plainToInstance(ResponseSingleDto<User>, responseObject)
+
+            return responseSingleDto
+
+        } catch(error) {
+            throw error
+        }
+    }
+
+    @Delete(':id')
+    async deleteUser(@Param('id', ParseIntPipe) id: number){
+        try {
+
+            const userDeleted = await this.userService.deleteUser(id)
+
+            const responseObject = {
+                success: true,
+                message: 'user deleted'
+            }
+
+            const responseSingleDto = plainToInstance(ResponseSingleDto<null>, responseObject)
+
+            return responseSingleDto
+
+        } catch (error) {
+            throw error
+        }
+    }
 }

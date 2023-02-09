@@ -15,16 +15,16 @@ export class User {
     @Column({length: 250, nullable: false})
     email: string;
 
-    @Column({length: 100, nullable: false})
+    @Column({length: 100, nullable: false, select: false})
     password: string;
 
     @Column({default: false})
     superadmin: boolean;
 
-    @CreateDateColumn()
+    @CreateDateColumn({select: false})
     createAt: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({select: false})
     updatedAt: Date;
     
     @Column({type: 'enum', enum: StatusEnum})
