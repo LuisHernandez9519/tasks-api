@@ -1,7 +1,7 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryParamDto } from 'src/common/dtos';
-import { StatusEnum } from 'src/common/enums/status.enum';
+import { StatusEnum } from './../../common/enums';
 import { PasswordService } from 'src/common/services/password.service';
 import { Brackets, Not, Repository } from 'typeorm';
 import { UserCreateDto } from './dtos';

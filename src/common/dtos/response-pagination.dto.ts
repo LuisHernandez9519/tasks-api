@@ -1,3 +1,4 @@
+import { ErrorValidate } from "../interfaces/";
 import { ResponseDto } from "./response.dto";
 
 interface Pagination<T> {
@@ -10,7 +11,7 @@ interface Pagination<T> {
 export class ResponsePaginationDto<T> implements ResponseDto {
     success: boolean;
     message: string;
-    errors_validate?: Record<string, any>[];
+    errors_validate?: ErrorValidate[];
     payload: Pagination<T>;
 
 }

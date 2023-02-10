@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { QueryParamDto } from "src/common/dtos";
-import { StatusTaskEnum } from "src/common/enums/status-task.enum";
+import { StatusTaskEnum } from "./../../common/enums";
 import { Not, Repository } from "typeorm";
 import { CreateTaskDto, UpdateTaskDto } from "./dtos";
 import { Task } from "./task.entity";

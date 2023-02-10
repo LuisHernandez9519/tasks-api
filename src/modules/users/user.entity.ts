@@ -1,32 +1,43 @@
-import { StatusEnum } from "src/common/enums/status.enum";
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { StatusEnum } from './../../common/enums';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+} from 'typeorm';
+import { Task } from '../tasks/task.entity';
 
 @Entity('users')
 export class User {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({length: 100, nullable: false})
+    @Column({ length: 100, nullable: false })
     name: string;
 
-    @Column({length: 100, nullable: false})
+    @Column({ length: 100, nullable: false })
     lastname: string;
 
-    @Column({length: 250, nullable: false})
+    @Column({ length: 250, nullable: false })
     email: string;
 
-    @Column({length: 100, nullable: false, select: false})
+    @Column({ length: 100, nullable: false, select: false })
     password: string;
 
-    @Column({default: false})
+    @Column({ default: false })
     superadmin: boolean;
 
-    @CreateDateColumn({select: false})
+    @CreateDateColumn({ select: false })
     createAt: Date;
 
-    @UpdateDateColumn({select: false})
+    @UpdateDateColumn({ select: false })
     updatedAt: Date;
-    
-    @Column({type: 'enum', enum: StatusEnum})
-    status: StatusEnum;
+
+    @Column({ type: 'enum', enum: StatusEnum })
+    status: StatusEnum; 
+
+    @OneToMany(() => Task, (task) => task.user)
+    tasks: Task[];
 }

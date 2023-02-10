@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TasksModule } from './modules/tasks/tasks.module';
-import { SubTasksModule } from './modules/sub-tasks/sub-tasks.module';
+import { SubTasksModule } from './modules/sub-tasks/subtasks.module';
 import { UsersModule } from './modules/users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';

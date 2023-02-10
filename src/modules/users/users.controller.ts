@@ -2,7 +2,7 @@ import { Controller, Delete, Get, HttpException, HttpStatus, Patch, Post } from 
 import { plainToInstance } from 'class-transformer'
 import { Body, Param, Query } from '@nestjs/common/decorators';
 import { ParseIntPipe } from '@nestjs/common/pipes';
-import { QueryParamDto, ResponsePaginationDto, ResponseSingleDto } from 'src/common/dtos';
+import { QueryParamDto, ResponsePaginationDto, ResponseSingleDto } from './../../common/dtos';
 import { UserCreateDto, UserUpdateDto } from './dtos';
 import { User } from './user.entity';
 import { UsersService } from './users.service';

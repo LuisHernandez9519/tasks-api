@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { QueryParamDto, ResponsePaginationDto, ResponseSingleDto } from 'src/common/dtos';
+import { QueryParamDto, ResponsePaginationDto, ResponseSingleDto } from './../../common/dtos';
 import { CreateTaskDto, UpdateTaskDto } from './dtos';
 import { Task } from './task.entity';
 import { TasksService } from './tasks.service';

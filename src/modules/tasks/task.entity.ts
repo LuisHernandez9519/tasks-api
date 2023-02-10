@@ -1,8 +1,9 @@
-import { PriorityTaskEnum } from "src/common/enums/priority-task.enum";
-import { StatusTaskEnum } from "src/common/enums/status-task.enum";
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { PriorityTaskEnum, StatusTaskEnum } from "./../../common/enums";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { SubTask } from "../sub-tasks/subtask.entity";
+import { User } from "../users/user.entity";
 
-@Entity()
+@Entity('tasks')
 export class Task {
 
     @PrimaryGeneratedColumn()
@@ -33,5 +34,12 @@ export class Task {
     updateAt: Date;
 
     @Column({type:'enum',enum: StatusTaskEnum})
-    status: StatusTaskEnum
+    status: StatusTaskEnum;
+
+    @JoinColumn({name: 'user_id'})
+    @ManyToOne(() => User, (user) => user.tasks)
+    user: User;
+
+    @OneToMany(() => SubTask, (subtask) => subtask.task)
+    subtaks: SubTask[];
 }

@@ -1,5 +1,5 @@
 import { ResponseDto } from "./response.dto";
-import { ErrorValidate } from "../interfaces/error-validate.interface";
+import { ErrorValidate } from "../interfaces/";
 
 export class ResponseSingleDto<T> implements ResponseDto {
 
