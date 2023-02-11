@@ -27,10 +27,10 @@ export class Task {
     @Column({nullable: true, type:'enum', enum: PriorityTaskEnum})
     priority: PriorityTaskEnum;
 
-    @CreateDateColumn()
+    @CreateDateColumn({type: 'timestamp with time zone'})
     createAt: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({type: 'timestamp with time zone'})
     updateAt: Date;
 
     @Column({type:'enum',enum: StatusTaskEnum})

@@ -29,10 +29,10 @@ export class User {
     @Column({ default: false })
     superadmin: boolean;
 
-    @CreateDateColumn({ select: false })
+    @CreateDateColumn({ select: false, type:'timestamp with time zone'})
     createAt: Date;
 
-    @UpdateDateColumn({ select: false })
+    @UpdateDateColumn({ select: false, type:'timestamp with time zone' })
     updatedAt: Date;
 
     @Column({ type: 'enum', enum: StatusEnum })

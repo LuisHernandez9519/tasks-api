@@ -17,10 +17,10 @@ export class SubTask {
     @Column()
     task_id: number;
 
-    @CreateDateColumn()
+    @CreateDateColumn({type: 'timestamp with time zone'})
     createdAt: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({type: 'timestamp with time zone'})
     updateAt: Date;
 
     @Column({type: 'enum', enum: StatusSubTaskEnum})
