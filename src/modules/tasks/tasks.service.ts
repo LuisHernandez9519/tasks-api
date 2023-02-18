@@ -1,76 +1,79 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { QueryParamDto } from "src/common/dtos";
-import { StatusTaskEnum } from "./../../common/enums";
-import { Not, Repository } from "typeorm";
-import { CreateTaskDto, UpdateTaskDto } from "./dtos";
-import { Task } from "./task.entity";
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { QueryParamDto } from 'src/common/dtos';
+import { StatusTaskEnum } from './../../common/enums';
+import { Not, Repository } from 'typeorm';
+import { CreateTaskDto, UpdateTaskDto } from './dtos';
+import { Task } from './task.entity';
 
 @Injectable()
 export class TasksService {
+  constructor(
+    @InjectRepository(Task) private readonly taskRepository: Repository<Task>,
+  ) {}
+  async getTask(id: number): Promise<Task> {
+    const task = await this.taskRepository.findOneBy({
+      status: Not(StatusTaskEnum.DELETED),
+      id,
+    });
 
-    constructor(
-        @InjectRepository(Task) private readonly taskRepository: Repository<Task>
-    ){}
-    async getTask(id: number): Promise<Task>{
-
-        const task = await this.taskRepository.findOneBy({status: Not(StatusTaskEnum.DELETED), id})
-
-        if (!task) {
-            throw new BadRequestException('task not found')
-        }
-
-        return task
+    if (!task) {
+      throw new BadRequestException('task not found');
     }
 
-    async getTasks({limit, search, page}: QueryParamDto): Promise<{users: Task[], totalCount: number}>{
-        
-        const queryBuilder = this.taskRepository.createQueryBuilder('task')
-        queryBuilder.where('task.status != :status', { status: StatusTaskEnum.DELETED })
+    return task;
+  }
 
-        //searching
-        if (search) {
-            queryBuilder.andWhere('task.title like :title', { title: `%${search}%` })
-        }
+  async getTasks({
+    limit,
+    search,
+    page,
+  }: QueryParamDto): Promise<{ users: Task[]; totalCount: number }> {
+    const queryBuilder = this.taskRepository.createQueryBuilder('task');
+    queryBuilder.where('task.status != :status', {
+      status: StatusTaskEnum.DELETED,
+    });
 
-        queryBuilder.orderBy('task.id', 'DESC')
-
-        //pagination
-        queryBuilder.take(limit)
-        queryBuilder.skip((page - 1) * limit)
-
-        const totalCount = await queryBuilder.getCount()
-
-        const users = await queryBuilder.getMany()
-
-        return {users, totalCount}
+    //searching
+    if (search) {
+      queryBuilder.andWhere('task.title like :title', { title: `%${search}%` });
     }
 
-    async createTask(data: CreateTaskDto): Promise<Task>{
+    queryBuilder.orderBy('task.id', 'DESC');
 
-        const task = this.taskRepository.create({
-            ...data,
-            status: StatusTaskEnum.CREATED
-        })
+    //pagination
+    queryBuilder.take(limit);
+    queryBuilder.skip((page - 1) * limit);
 
-        return await this.taskRepository.save(task)
-    }
+    const totalCount = await queryBuilder.getCount();
 
-    async updateTask(data: UpdateTaskDto, id: number): Promise<Task>{
+    const users = await queryBuilder.getMany();
 
-        const task = await this.getTask(id)
+    return { users, totalCount };
+  }
 
-        const taskUpdate = this.taskRepository.create({...task, ...data})
+  async createTask(data: CreateTaskDto): Promise<Task> {
+    const task = this.taskRepository.create({
+      ...data,
+      status: StatusTaskEnum.CREATED,
+    });
 
-        return await this.taskRepository.save(taskUpdate)
-    }
+    return await this.taskRepository.save(task);
+  }
 
-    async deleteTask(id: number): Promise<void>{
+  async updateTask(data: UpdateTaskDto, id: number): Promise<Task> {
+    const task = await this.getTask(id);
 
-        const task = await this.getTask(id)
+    const taskUpdate = this.taskRepository.create({ ...task, ...data });
 
-        task.status = StatusTaskEnum.DELETED
+    return await this.taskRepository.save(taskUpdate);
+  }
 
-        await this.taskRepository.save(task)
-    }    
+  async deleteTask(id: number): Promise<void> {
+    const task = await this.getTask(id);
+
+    task.status = StatusTaskEnum.DELETED;
+
+    await this.taskRepository.save(task);
+  }
 }

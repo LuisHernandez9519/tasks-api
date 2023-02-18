@@ -1,1 +1,1 @@
-export { PasswordService } from './password.service'
+export { PasswordService } from './password.service';

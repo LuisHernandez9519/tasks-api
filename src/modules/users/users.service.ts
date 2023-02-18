@@ -1,4 +1,10 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryParamDto } from 'src/common/dtos';
 import { StatusEnum } from './../../common/enums';
@@ -10,122 +16,134 @@ import { User } from './user.entity';
 
 @Injectable()
 export class UsersService {
+  constructor(
+    @InjectRepository(User) private readonly userRespository: Repository<User>,
+    //@InjectManager() private readonly manager: EntityManager,
+    private readonly passwordService: PasswordService,
+  ) {}
 
-    constructor(
-        @InjectRepository(User) private readonly userRespository: Repository<User>,
-        //@InjectManager() private readonly manager: EntityManager,
-        private readonly passwordService: PasswordService
-    ){}
+  async getUser(id: number): Promise<User> {
+    const user = await this.userRespository.findOneBy({
+      id,
+      status: Not(StatusEnum.DELETED),
+    });
 
-    async getUser(id: number): Promise<User>{
-        
-        const user = await this.userRespository.findOneBy({id, status: Not(StatusEnum.DELETED)})
-        
-        if (!user) {
-            throw new NotFoundException(`Resource user not found`)
-        }
-        
-        return user
+    if (!user) {
+      throw new NotFoundException(`Resource user not found`);
     }
 
-    async getUserByEmail(email: string): Promise<User>{
+    return user;
+  }
 
-        const user = await this.userRespository.findOneBy({email, status: Not(StatusEnum.DELETED)})
-        
-        if (!user) {
-            throw new NotFoundException(`Resource user with email "${email}" not found`)
-        }
+  async getUserByEmail(email: string): Promise<User> {
+    const user = await this.userRespository.findOneBy({
+      email,
+      status: Not(StatusEnum.DELETED),
+    });
 
-        return user
+    if (!user) {
+      throw new NotFoundException(
+        `Resource user with email "${email}" not found`,
+      );
     }
 
-    async getUsers({limit, page, search}: QueryParamDto): Promise<{users: User[], totalCount: number}>{
+    return user;
+  }
 
-        let queryBuilder = this.userRespository.createQueryBuilder('user')
-                            .where('user.status != :status', {status: StatusEnum.DELETED})
-        
-        //serach by name or lastname or emil
-        if (search) {
+  async getUsers({
+    limit,
+    page,
+    search,
+  }: QueryParamDto): Promise<{ users: User[]; totalCount: number }> {
+    const queryBuilder = this.userRespository
+      .createQueryBuilder('user')
+      .where('user.status != :status', { status: StatusEnum.DELETED });
 
-            queryBuilder.andWhere(
-                new Brackets((qb)=> {
-                    qb.where('user.name like :name', {name: `%${search}%`})
-                    qb.orWhere('user.lastname like :lastname', {lastname: `%${search}%`})
-                    qb.orWhere('user.email like :email', {email: `%${search}%`})
-                })
-            )
-        }
-
-        queryBuilder.orderBy('user.id', 'DESC')
-
-        //pagination
-        queryBuilder.take(limit)
-        queryBuilder.skip((page-1) * limit)
-
-        //count user total db
-        const totalCount = await queryBuilder.getCount()
-
-        const users = await queryBuilder.getMany()
-
-        return {users, totalCount}
+    //serach by name or lastname or emil
+    if (search) {
+      queryBuilder.andWhere(
+        new Brackets((qb) => {
+          qb.where('user.name like :name', { name: `%${search}%` });
+          qb.orWhere('user.lastname like :lastname', {
+            lastname: `%${search}%`,
+          });
+          qb.orWhere('user.email like :email', { email: `%${search}%` });
+        }),
+      );
     }
 
-    async createUser(data: UserCreateDto): Promise<User>{
+    queryBuilder.orderBy('user.id', 'DESC');
 
-        //validate that email is unique
-        const userEmailExist = await this.userRespository.findOneBy({email: data.email, status: Not(StatusEnum.DELETED)})
+    //pagination
+    queryBuilder.take(limit);
+    queryBuilder.skip((page - 1) * limit);
 
-        if (userEmailExist) {
-            throw new BadRequestException("The email is being used")
-        }
+    //count user total db
+    const totalCount = await queryBuilder.getCount();
 
-        //encrypt password
-        const passwordEncrypt = await this.passwordService.encryptPassword(data.password)
+    const users = await queryBuilder.getMany();
 
-        const user = this.userRespository.create({
-            ...data,
-            password: passwordEncrypt,
-            status: StatusEnum.ACTIVE
-        })
+    return { users, totalCount };
+  }
 
-        return await this.userRespository.save(user)       
-       
+  async createUser(data: UserCreateDto): Promise<User> {
+    //validate that email is unique
+    const userEmailExist = await this.userRespository.findOneBy({
+      email: data.email,
+      status: Not(StatusEnum.DELETED),
+    });
+
+    if (userEmailExist) {
+      throw new BadRequestException('The email is being used');
     }
 
-    async updateUser(data: UserUpdateDto, id: number): Promise<User> {
-        
-        const user = await this.getUser(id)
+    //encrypt password
+    const passwordEncrypt = await this.passwordService.encryptPassword(
+      data.password,
+    );
 
-        //if password is asigned
-        if (data.password) {
-            data.password = await this.passwordService.encryptPassword(data.password)
-        }
+    const user = this.userRespository.create({
+      ...data,
+      password: passwordEncrypt,
+      status: StatusEnum.ACTIVE,
+    });
 
-        //if email is different to actual, verify that new email not using in other user
-        if (data.email) {
-            if (data.email !== user.email) {
-                
-                const user = await this.userRespository.findOneBy({email: data.email, status: Not(StatusEnum.DELETED)})
-    
-                if (user) {
-                    throw new BadRequestException('The email is being used')
-                }
-    
-            }
-        }
+    return await this.userRespository.save(user);
+  }
 
-        const userUpdate = this.userRespository.create({...user, ...data})
+  async updateUser(data: UserUpdateDto, id: number): Promise<User> {
+    const user = await this.getUser(id);
 
-        return await this.userRespository.save(userUpdate)
+    //if password is asigned
+    if (data.password) {
+      data.password = await this.passwordService.encryptPassword(data.password);
     }
 
-    async deleteUser(id: number): Promise<void>{
+    //if email is different to actual, verify that new email not using in other user
+    if (data.email) {
+      if (data.email !== user.email) {
+        const user = await this.userRespository.findOneBy({
+          email: data.email,
+          status: Not(StatusEnum.DELETED),
+        });
 
-        //validate that user exist
-        const user = await this.getUser(id)
-
-        user.status = StatusEnum.DELETED
-
-        await this.userRespository.save(user)
+        if (user) {
+          throw new BadRequestException('The email is being used');
+        }
+      }
     }
+
+    const userUpdate = this.userRespository.create({ ...user, ...data });
+
+    return await this.userRespository.save(userUpdate);
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    //validate that user exist
+    const user = await this.getUser(id);
+
+    user.status = StatusEnum.DELETED;
+
+    await this.userRespository.save(user);
+  }
 }

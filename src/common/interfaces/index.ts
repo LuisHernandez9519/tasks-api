@@ -1,1 +1,1 @@
-export { ErrorValidate } from './error-validate.interface'
+export { ErrorValidate } from './error-validate.interface';

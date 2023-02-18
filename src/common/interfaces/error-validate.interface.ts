@@ -1,4 +1,4 @@
 export interface ErrorValidate {
-    key: string;
-    message: string;
+  key: string;
+  message: string;
 }
