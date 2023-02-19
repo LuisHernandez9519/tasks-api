@@ -13,8 +13,8 @@ export class AuthService {
     private readonly passwordService: PasswordService,
   ) {}
 
-  async validateUser(username: string, password: string) {
-    const user = await this.usersService.getUserByEmail(username);
+  async validateUser(email: string, password: string) {
+    const user = await this.usersService.getUserByEmail(email);
 
     //validate password
     const matchPassword = await this.passwordService.comparePassword(

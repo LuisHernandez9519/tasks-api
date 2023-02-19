@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { Body, Param, Query } from '@nestjs/common/decorators';
@@ -18,6 +19,7 @@ import {
 import { UserCreateDto, UserUpdateDto } from './dtos';
 import { User } from './user.entity';
 import { UsersService } from './users.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('users')
 export class UsersController {
@@ -28,7 +30,7 @@ export class UsersController {
     try {
       const user = await this.userService.getUser(id);
 
-      let responseObject = {
+      const responseObject = {
         success: true,
         message: 'user found',
         payload: user,
@@ -45,12 +47,13 @@ export class UsersController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   async getUsers(@Query() data: QueryParamDto) {
     try {
       const result = await this.userService.getUsers(data);
 
-      let responseObject = {
+      const responseObject = {
         success: true,
         message: 'list users',
         payload: {
